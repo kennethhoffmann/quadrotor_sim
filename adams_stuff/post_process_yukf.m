@@ -4,7 +4,7 @@ function post_process_yukf()
     fprintf("NOTE: consider using quad offset!!\n")
     
     %%% Initialize YUKF %%%
-    num_dims = 13; % length of state (now with our own pose!)
+    num_dims = 13; % length of state
     flight.x_act = zeros(num_dims, 1);  % this is a placeholder that needs to happen before yolo_yukf_init()
     yukf = yolo_ukf_init(num_dims, NaN); % this sets most of the filter parameters, the rest are loaded from a file
 
@@ -73,7 +73,6 @@ function post_process_yukf()
     yolo_hist = zeros(yukf.prms.meas_len, num_img);
     acc_hist = zeros(3, num_img);
     t_prev = 0;
-    u_ego = [];
     for k = 1:num_img
         % YOLO UKF %%%%%%
         if(k > 1)
@@ -87,9 +86,6 @@ function post_process_yukf()
             
             % update model's est dt & est hz %%%%%%
             yukf.model.est_dt = yukf.dt; yukf.model.est_hz = 1/yukf.model.est_dt; 
-            
-%             u_ego = yukf.model.hover_wrench;
-            u_ego = yukf.model.hover_u*ones(4,1);
             
             % Get sensor reading
             if yukf.prms.b_predicted_bb
@@ -110,7 +106,7 @@ function post_process_yukf()
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             % Update UKF %%%%%%
-            yukf = yukf_step(yukf, u_ego, yolo_output, camera, initial_bb, x0_ego_gt);
+            yukf = yukf_step(yukf, [], yolo_output, camera, initial_bb, x0_ego_gt);
             
             % Moving Average Filter
             if yukf.prms.b_filter_data && ~yukf.prms.b_predicted_bb
