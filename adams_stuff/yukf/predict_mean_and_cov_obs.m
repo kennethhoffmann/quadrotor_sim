@@ -1,6 +1,5 @@
 function [z_hat, S, S_inv] = predict_mean_and_cov_obs(pred_obs, yukf, cov_add_noise)
     % inverse of the unscented transform
-    dim = length(yukf.mu);
     dim_covar = length(yukf.sigma);
     %size(pred_obs, 2);
     

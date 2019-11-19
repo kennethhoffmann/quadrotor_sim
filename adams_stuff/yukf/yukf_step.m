@@ -1,4 +1,4 @@
-function yukf = yukf_step(yukf, u_ego, z, camera, initial_bb)
+function yukf = yukf_step(yukf, u_ego, z, camera, initial_bb, x0_ego_gt)
     global flight k_act t_tmp k
     if isempty(k_act)
         k_act = k;
@@ -27,7 +27,7 @@ function yukf = yukf_step(yukf, u_ego, z, camera, initial_bb)
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % line 7 - 9 - predict observation & uncertainty for each sigma point
-    pred_obs = predict_obs(sps_updated, camera, initial_bb, yukf);
+    pred_obs = predict_obs(sps_updated, camera, initial_bb, yukf, x0_ego_gt);
     [z_hat, S, S_inv] = predict_mean_and_cov_obs(pred_obs, yukf, yukf.prms.R);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -42,11 +42,6 @@ function yukf = yukf_step(yukf, u_ego, z, camera, initial_bb)
     mu_out(11:13) = mu_bar(11:13) + innovation(10:12);
     q_tmp = quatmultiply(axang_to_quat(innovation(7:9))', mu_bar(7:10)');
     mu_out(7:10) = q_tmp;
-    
-    mu_out(14:19) = mu_bar(14:19) + innovation(13:18);
-    mu_out(24:26) = mu_bar(24:26) + innovation(22:24);
-    q_tmp = quatmultiply(axang_to_quat(innovation(19:21))', mu_bar(20:23)');
-    mu_out(20:23) = q_tmp;
 
     if any([yukf.prms.b_enforce_0_yaw, yukf.prms.b_enforce_yaw, yukf.prms.b_enforce_pitch, yukf.prms.b_enforce_roll])
         q_tmp = cheat_with_angles(q_tmp);

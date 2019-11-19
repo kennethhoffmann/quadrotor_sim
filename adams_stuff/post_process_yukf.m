@@ -4,7 +4,7 @@ function post_process_yukf()
     fprintf("NOTE: consider using quad offset!!\n")
     
     %%% Initialize YUKF %%%
-    num_dims = 13 + 13; % length of state (now with our own pose!)
+    num_dims = 13; % length of state (now with our own pose!)
     flight.x_act = zeros(num_dims, 1);  % this is a placeholder that needs to happen before yolo_yukf_init()
     yukf = yolo_ukf_init(num_dims, NaN); % this sets most of the filter parameters, the rest are loaded from a file
 
@@ -29,20 +29,18 @@ function post_process_yukf()
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     %%% overwrite placeholder value of flight.x_act/t_act with ground truth data %%%
-    x0_ego_gt = [camera.pose(1:3)'; zeros(3, 1); 1; 0; 0; 0; zeros(3, 1)]; % camera.pose(4:7)'
+    x0_ego_gt = [camera.pose(1:3)'; zeros(3, 1); [1; 0; 0; 0]; zeros(3, 1)];
     camera.pose(1:3) = [0, 0, 0]; % THIS IS NOW RELATIVE TO THE STATE!!
     
-    tf_w_quadego = state_to_tf(x0_ego_gt);
-    camera.tf_cam_quadego = camera.tf_cam_w * tf_w_quadego;
-    camera.tf_quadego_cam = inv_tf(camera.tf_cam_quadego);
+    tf_w_ego = state_to_tf(x0_ego_gt);
+    camera.tf_cam_ego = camera.tf_cam_w * tf_w_ego;
+    camera.tf_ego_cam = inv_tf(camera.tf_cam_ego);
     
-    x0_gt = [position_mat(1, :)'; zeros(3, 1); quat_mat(1, :)'; zeros(3 ,1); x0_ego_gt];
+    x0_gt = [position_mat(1, :)'; zeros(3, 1); quat_mat(1, :)'; zeros(3 ,1)];
     flight.x_act = zeros(num_dims, num_img); 
     flight.x_act(1:3, :) = position_mat';
     flight.x_act(7:10, :) = quat_mat(:, :)';
     flight.t_act = t_pose_arr;
-    flight.x_act(14:16, :) = repmat(x0_gt(14:16), 1, size(flight.x_act, 2));
-    flight.x_act(20:23, :) = repmat(x0_gt(20:23), 1, size(flight.x_act, 2));
     yukf.dt = flight.t_act(2) - flight.t_act(1);
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
@@ -53,7 +51,7 @@ function post_process_yukf()
         yaw0 = 0;   pitch0 = 1*pi/180;   roll0 = 3*pi/180;
         quat0_est = quatmultiply(angle2quat(roll0, pitch0, yaw0, 'XYZ'), x0_gt(7:10)')';
         w0_est = [0; 0; 0] + x0_gt(11:13);
-        yukf.mu = [pos0_est(:); v0_est(:); quat0_est(:); w0_est(:); x0_gt(14:26)];
+        yukf.mu = [pos0_est(:); v0_est(:); quat0_est(:); w0_est(:)];
     else
         yukf.mu = x0_gt(:);
     end
@@ -95,7 +93,7 @@ function post_process_yukf()
             
             % Get sensor reading
             if yukf.prms.b_predicted_bb
-                yolo_output = predict_quad_bounding_box(flight.x_act(:, k), camera, initial_bb, yukf); %"perfect" prediction
+                yolo_output = predict_quad_bounding_box(flight.x_act(:, k), camera, initial_bb, yukf, x0_ego_gt); %"perfect" prediction
             else
                 yolo_output = z_mat(k, :)';
                 yolo_output = augment_measurement(yolo_output, yukf, flight.x_act(:, k), flight.x_act(:, k));
@@ -112,7 +110,7 @@ function post_process_yukf()
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
             % Update UKF %%%%%%
-            yukf = yukf_step(yukf, u_ego, yolo_output, camera, initial_bb);
+            yukf = yukf_step(yukf, u_ego, yolo_output, camera, initial_bb, x0_ego_gt);
             
             % Moving Average Filter
             if yukf.prms.b_filter_data && ~yukf.prms.b_predicted_bb

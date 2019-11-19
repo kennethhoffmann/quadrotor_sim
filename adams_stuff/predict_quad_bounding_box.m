@@ -1,4 +1,4 @@
-function [output, bb_rc_list] = predict_quad_bounding_box(x_curr, camera, initial_bb, yukf)
+function [output, bb_rc_list] = predict_quad_bounding_box(x_curr, camera, initial_bb, yukf, x0_ego_gt)
     % basic output is [r_center, c_center, width, height, ...]
     % quad is z up, x forward (and y left)
     % camera is z out, x right and y down 
@@ -10,10 +10,11 @@ function [output, bb_rc_list] = predict_quad_bounding_box(x_curr, camera, initia
     b_draw_box = false; % setting to true slows it down considerably, but shows the prediction vs. true state & how the sigma points vary around the mean
     
     tf_w_quad = state_to_tf(x_curr(1:13));
-    if length(x_curr) > 13
-        tf_w_quadego = state_to_tf(x_curr(14:26));
-        tf_cam_w = camera.tf_cam_quadego * inv_tf(tf_w_quadego);
+    if ~isempty(x0_ego_gt)
+        tf_w_ego = state_to_tf(x0_ego_gt);
+        tf_cam_w = camera.tf_cam_ego * inv_tf(tf_w_ego);
     else
+        warning('this assumes the camera is stationary')
         tf_cam_w = camera.tf_cam_w;
     end
     tf_cam_quad = tf_cam_w * tf_w_quad;
