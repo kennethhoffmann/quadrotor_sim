@@ -1,6 +1,9 @@
-function [lims, plt_h] = plot_camera(camera, fig_h)
+function [lims, plt_h] = plot_camera(camera, x0_ego_gt, fig_h)
     figure(fig_h);
-    xyzs = (camera.tf_w_cam * [camera.viz_wf, ones(size(camera.viz_wf, 1), 1)]')';
+    tf_w_ego = state_to_tf(x0_ego_gt);
+    tf_w_cam = tf_w_ego * camera.tf_ego_cam;
+    
+    xyzs = (tf_w_cam * [camera.viz_wf, ones(size(camera.viz_wf, 1), 1)]')';
     plt_h = plot3(xyzs(:, 1), xyzs(:, 2), xyzs(:,3), 'm-');
     
     % expand the plot to show the camera

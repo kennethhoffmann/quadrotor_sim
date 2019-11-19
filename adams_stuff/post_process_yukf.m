@@ -60,7 +60,7 @@ function post_process_yukf()
         
     %%% Init animation plot %%%
     if b_animate
-        [traj_est_h, h_persp, h_persp_est] = init_iterative_animation_plot(position_mat(1,:), quat_mat(1,:), camera, position_mat, quat_mat, b_view_from_camera_perspective);
+        [traj_est_h, h_persp, h_persp_est, cmr_h] = init_iterative_animation_plot(position_mat(1,:), quat_mat(1,:), camera, position_mat, quat_mat, b_view_from_camera_perspective, x0_ego_gt);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
     
@@ -138,8 +138,9 @@ function post_process_yukf()
         end
         %%%%%%%%%%%%%%%%%%%
         if b_animate
-            [h_persp, h_persp_est] = update_animation_plot(h_persp, traj_est_h, h_persp_est, position_mat(k, :), quat_mat(k, :), sv, k, animation_pause);
+            [h_persp, h_persp_est] = update_animation_plot(h_persp, traj_est_h, h_persp_est, position_mat(k, :), quat_mat(k, :), sv, k, animation_pause, cmr_h, x0_ego_gt, camera);
         end
+        x0_ego_gt(1) = x0_ego_gt(1) + 0.01;
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % plot history of filter vs ground truth

@@ -1,4 +1,11 @@
-function [h_persp, h_persp_est] = update_animation_plot(h_persp, traj_est_h, h_persp_est, pos, quat, sv, k, animation_pause)
+function [h_persp, h_persp_est] = update_animation_plot(h_persp, traj_est_h, h_persp_est, pos, quat, sv, k, animation_pause, cmr_h, x0_ego_gt, camera)
+    % update camera
+    tf_w_ego = state_to_tf(x0_ego_gt);
+    tf_w_cam = tf_w_ego * camera.tf_ego_cam;
+    
+    xyzs = (tf_w_cam * [camera.viz_wf, ones(size(camera.viz_wf, 1), 1)]')';
+    set(cmr_h, 'xdata', xyzs(:, 1), 'ydata', xyzs(:, 2), 'zdata', xyzs(:,3));
+     
     % update ground truth quad pose
     pos = pos(:);
     bRw = quat2rotm(quat(:)');

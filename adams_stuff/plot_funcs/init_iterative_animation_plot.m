@@ -1,4 +1,4 @@
-function [traj_est_h, h_persp, h_persp_est] = init_iterative_animation_plot(init_pos, init_quat, camera, position_mat, quat_mat, b_view_from_camera_perspective)
+function [traj_est_h, h_persp, h_persp_est, cmr_h] = init_iterative_animation_plot(init_pos, init_quat, camera, position_mat, quat_mat, b_view_from_camera_perspective, x0_ego_gt)
     fig_ani = figure(324234); clf; grid on; hold on
         
     % plot limits
@@ -8,7 +8,7 @@ function [traj_est_h, h_persp, h_persp_est] = init_iterative_animation_plot(init
     zlim([min([position_mat(:, 3) - extra]),  max([position_mat(:, 3) + extra])]);
 
     % Plot the camera (and expand axis to show it)
-    [~, cmr_h] = plot_camera(camera, fig_ani);
+    [~, cmr_h] = plot_camera(camera, x0_ego_gt, fig_ani);
     if b_view_from_camera_perspective
         set(gca, 'CameraPosition', camera.tf_w_cam(1:3, 4)'); 
         view(-90,0); % look from behind the camera
