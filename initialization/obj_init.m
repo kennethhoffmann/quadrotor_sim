@@ -1,4 +1,4 @@
-function obj = obj_init(trajectory)
+function obj = obj_init(trajectory,start,goal,endPos)
      
 address = ['waypoint_objectives/',trajectory,'.csv'];
 
@@ -15,7 +15,7 @@ else
     obj.x = zeros(13,2);
     obj.x(:,1) = [0 ; 0 ; 1; zeros(3,1) ; 1 ; zeros(6,1)];
     
-    q_obj  = eul2quat([pi/4 0 0]);
+    q_obj  = eul2quat([0 0 0]);
     q_targ = quatconj(q_obj/norm(q_obj));
     
     vel_mag = 1.0;
@@ -31,10 +31,32 @@ else
             obj.m_act  = 0.0;
             obj.pos    = [2 ; 0.1 ; 1];
             
+            %obj.pos = goal; %{x,y,z} of the goal
+            
             x_final = obj.pos + K_over.*vel_des;
+            
             
             obj.x(:,1) = [-3 ; 0   ; 1; zeros(3,1) ; 1 ; zeros(6,1)];
             obj.x(:,2) = [ x_final ; vel_des ; q_final' ; zeros(3,1)];
+            disp('[obj_init]: Loaded Trajectory: massless');
+            
+        case "target"
+            obj.name   = "massless";
+            obj.m_act  = 0.0;
+            %obj.pos    = [2 ; 0.1 ; 1];
+            
+            %obj.pos = goal; %{x,y,z} of the goal
+            
+            obj.pos = goal + K_over.*vel_des;
+            %x_final = obj.pos + K_over.*vel_des;
+            x_start = start;
+            x_final = endPos;
+            
+            
+            obj.x(:,1) = [ x_start ; [1 ; 0 ;0] ;[1 0 0 0 ]' ; zeros(3,1)];
+            obj.x(:,2) = [ obj.pos ; vel_des ; [1 0 0 0 ]' ; zeros(3,1)];
+            obj.x(:,3) = [ x_final ; [1 ; 0 ;0] ; [1 0 0 0 ]' ; zeros(3,1)];
+            %obj.x(:,3) = [ x_final ; vel_des ; q_final' ; zeros(3,1)];
             disp('[obj_init]: Loaded Trajectory: massless');
             
         case "pigeon"
