@@ -1,5 +1,6 @@
-clear; clc; 
-addpath(genpath(pwd));
+function [traj,log] = trajGenVel(start,goal,endPos,plot)
+%clear; clc; 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Initialize Simulation Parameters
@@ -12,11 +13,9 @@ n_der = 15;             % Order of Basis Function for QP
 
 % Objective and Constraints
 %obj  = obj_init('target');
-start  = [-4,0,1]';
-%goal   = [-1,1,1]';
-goal =[-0.3557; 0.2655;.803]
-
-endPos = [4,0,1]';
+%start  = [-4,0,1]';
+%goal   = [-1,0,1.2]';
+%endPos = [4,0,1]';
 %Does not incorporate the orientation yet
 obj  = obj_init('target',start,goal,endPos);
 map  = map_init('default');
@@ -41,10 +40,17 @@ log = simulation(traj,obj,model,'none','pos_att','bypass');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Plot the States and Animate
-
+if plot
 animation_plot(log,obj,map,'persp','show');
+end
+plot3(traj.x(1,:),traj.x(2,:),traj.x(3,:))
+axis equal
+axis([map.x_lim,map.y_lim,map.z_lim])
 
+plotfixer
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Save the Flat Output in Pos/Vel csv
 
 fout2csv(log.t_fmu,traj.f_out)
+
+end
