@@ -34,8 +34,9 @@ traj = diff_flat_ws(obj,map,model,n_der,'hide');
 toc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Simulation
-
+tic
 log = simulation(traj,obj,model,'none','pos_att','bypass');
+toc
 % log = simulation(traj,obj,model,'none','body_rate','bypass');
 % log = simulation(traj,obj,model,'none','direct','bypass');
 
